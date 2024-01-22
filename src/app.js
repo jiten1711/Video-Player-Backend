@@ -16,6 +16,10 @@ app.use(express.static("public"))
 // there are some files that server stores in cookies of client browser, so we need to parse them
 app.use(cookieParser())
 
+
+
+
+
 // routes import
 import userRouter from './routes/user.route.js'
 
