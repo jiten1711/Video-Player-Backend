@@ -22,10 +22,12 @@ app.use(cookieParser())
 
 // routes import
 import userRouter from './routes/user.route.js'
-
 //routes declaration
 app.use("/api/v1/users", userRouter)
 // the above depicts http://localhost:8000/api/v1/users/<register or login>
-    
+
+
+import videoRouter from './routes/video.route.js'
+app.use("/api/v1/videos", videoRouter)
 
 export { app }
