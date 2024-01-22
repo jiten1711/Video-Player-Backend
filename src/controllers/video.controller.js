@@ -226,7 +226,7 @@ const getVideoById = asyncHandler(async (req, res) => {
 
 })
 
-const updateVideo = asyncHandler(async (req, res) => {
+const updateVideoDetails = asyncHandler(async (req, res) => {
     const { videoId } = req.params
     //TODO: update video details like title, description, thumbnail
     // steps to update video
@@ -264,6 +264,64 @@ const updateVideo = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, video, "Video updated"))
 
+})
+
+const updateVideoThumbnail = asyncHandler(async (req, res) => {
+    const { videoId } = req.params
+
+    if (!isValidObjectId(videoId)) {
+        throw new ApiError(400, "Invalid video id while updating thumbnail")
+    }
+
+    const videoPath = req.file?.path
+
+    if (!videoPath) {
+        throw new ApiError(400, "Missing video path while updating thumbnail")
+    }
+
+    const videoUrl = await uploadOnCloudinary(videoPath)
+
+    if (!videoUrl.url || !videoUrl.public_id) {
+        throw new ApiError(500, "Error uploading video in cloudinary while updating thumbnail")
+    }
+
+    const video = await Video.findById(videoId)
+
+    if (!video) {
+        throw new ApiError(404, "Video not found while updating thumbnail")
+    }
+
+    const oldThumbnailPublicId = video.thumbnail?.publicId
+
+    if (!oldThumbnailPublicId) {
+        throw new ApiError(500, "Error updating thumbnail")
+    }
+
+    const updatedVideo = await Video.updateOne(
+        { _id: videoId },
+        {
+            $set: {
+                thumbnail: {
+                    public_id: uploadThumbnail.public_id,
+                    url: uploadThumbnail.url,
+                },
+            },
+        }
+    );
+
+    if (!updatedVideo) {
+        throw new ApiError(400, "Error while updating file");
+    }
+
+    const removeThumbnailFromCloudinary = await deleteFromCloudinary(oldThumbnailPublicId)
+
+    if (!removeThumbnailFromCloudinary) {
+        throw new ApiError(500, "Error deleting thumbnail from cloudinary")
+    }
+
+    return res
+        .status(200)
+        .json(new ApiResponse(200, updatedVideo, "Thumbnail updated"))
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
@@ -343,7 +401,8 @@ export {
     getAllVideos,
     publishAVideo,
     getVideoById,
-    updateVideo,
+    updateVideoDetails,
     deleteVideo,
-    togglePublishStatus
+    togglePublishStatus,
+    updateVideoThumbnail
 }
