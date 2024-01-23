@@ -30,4 +30,9 @@ app.use("/api/v1/users", userRouter)
 import videoRouter from './routes/video.route.js'
 app.use("/api/v1/videos", videoRouter)
 
+
+import playlistRouter from './routes/playlist.route.js'
+app.use("/api/v1/playlists", playlistRouter)
+
+
 export { app }
