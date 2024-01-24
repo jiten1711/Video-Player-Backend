@@ -38,4 +38,8 @@ app.use("/api/v1/playlists", playlistRouter)
 import subscriptionRouter from './routes/subscription.route.js'
 app.use("/api/v1/subscriptions", subscriptionRouter)
 
+
+import likeRouter from './routes/like.route.js'
+app.use("/api/v1/likes", likeRouter)
+
 export { app }
