@@ -1,9 +1,9 @@
 import mongoose, { isValidObjectId } from "mongoose";
-import { ApiError } from "../utils/ApiError"
-import { ApiResponse } from "../utils/ApiRespone"
-import { asyncHandler } from "../utils/asyncHandler"
-import { Comment } from "../models/comment.model"
-import { Video } from "../models/video.model"
+import ApiError from "../utils/ApiError.js"
+import ApiResponse from "../utils/ApiRespone.js"
+import { asyncHandler } from "../utils/asyncHandler.js"
+import { Comment } from "../models/comment.model.js"
+import { Video } from "../models/video.model.js"
 
 
 const getVideoComments = asyncHandler(async (req, res) => {
@@ -125,10 +125,10 @@ const updateComment = asyncHandler(async (req, res) => {
     }
 
     const newComment = await Comment.findByIdAndUpdate(commentId, {
-            $set: {
-                content: newContent
-            }
-        },
+        $set: {
+            content: newContent
+        }
+    },
         {
             new: true
         }
