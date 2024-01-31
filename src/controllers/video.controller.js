@@ -26,6 +26,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     // if yes, then paginate the videos
     // if no, then get all videos
 
+    //console.log(req.query)
     if (!isValidObjectId(userId)) {
         throw new ApiError(400, "Invalid user id")
     }
@@ -35,6 +36,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
     }
 
     const user = await User.findById(userId)
+    //console.log(user)
 
     if (!user) {
         throw new ApiError(404, "User not found")
@@ -56,7 +58,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
             $match: {
                 $and: [
                     {
-                        owner: mongoose.Types.ObjectId(userId)
+                        owner: new mongoose.Types.ObjectId(userId)
                     },
                     {
                         title: {
@@ -74,7 +76,9 @@ const getAllVideos = asyncHandler(async (req, res) => {
     const paginatedVideos = await Video.aggregatePaginate(videos, options)
 
     if (!paginatedVideos.totalDocs) {
-        throw new ApiError(404, "No videos found")
+        return res
+            .status(200)
+            .json(new ApiResponse(200, {}, "No videos found of this user"))
     }
 
     return res
@@ -97,8 +101,11 @@ const publishAVideo = asyncHandler(async (req, res) => {
     if (!title || !description) {
         throw new ApiError(400, "Missing title or description")
     }
-    const videoPath = req.file?.video?.[0]?.path
-    const thumbnailPath = req.file?.thumbnail?.[0]?.path
+    //console.log(req.file)
+    const videoPath = await req.files?.video?.[0]?.path
+
+    const thumbnailPath = await req.files?.thumbnail?.[0]?.path
+    //console.log(thumbnailPath, videoPath)
 
     if (!videoPath) {
         throw new ApiError(400, "Missing video")
@@ -143,6 +150,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
+    console.log(videoId);
     //TODO: get video by id
     if (!isValidObjectId(videoId)) {
         throw new ApiError(400, "Invalid video id")
@@ -157,10 +165,10 @@ const getVideoById = asyncHandler(async (req, res) => {
     video.views += 1
     await video.save({ validateBeforeSave: false })
 
-    let videoDetails = Video.aggregate([
+    let videoDetails = await Video.aggregate([
         {
             $match: {
-                _id: mongoose.Types.ObjectId(videoId)
+                _id: new mongoose.Types.ObjectId(videoId)
             }
         },
         {
@@ -209,9 +217,7 @@ const getVideoById = asyncHandler(async (req, res) => {
                     $size: "$comments"
                 },
                 isSubscribed: {
-                    if: { $in: [req.user._id, "$subscribers.subscriber"] },
-                    then: true,
-                    else: false
+                    $in: [req.user._id, "$subscribers.subscriber"]
                 }
             }
         }
@@ -233,15 +239,17 @@ const updateVideoDetails = asyncHandler(async (req, res) => {
     // check if videoId is present
     // check title and description from body
     // update title and description for that video
+    const { title, description } = req.body;
 
     if (!isValidObjectId(videoId)) {
         throw new ApiError(400, "Invalid video id")
     }
 
-    const { title, description } = req.body
+
+    console.log(title, description)
 
     if (!title && !description) {
-        throw new ApiError(400, "Atleast title or description is required to update")
+        throw new ApiError(400, "At-least title or description is required to update")
     }
 
     const video = await Video.findById(videoId)
