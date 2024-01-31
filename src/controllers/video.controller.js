@@ -281,17 +281,19 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Invalid video id while updating thumbnail")
     }
 
-    const videoPath = req.file?.path
+    const thumbnailPath = req.file?.path
 
-    if (!videoPath) {
-        throw new ApiError(400, "Missing video path while updating thumbnail")
+    if (!thumbnailPath) {
+        throw new ApiError(400, "Missing thumbnail path while updating thumbnail")
     }
 
-    const videoUrl = await uploadOnCloudinary(videoPath)
+    const thumbnailUrl = await uploadOnCloudinary(thumbnailPath)
 
-    if (!videoUrl.url || !videoUrl.public_id) {
-        throw new ApiError(500, "Error uploading video in cloudinary while updating thumbnail")
+    if (!thumbnailUrl.url || !thumbnailUrl.public_id) {
+        throw new ApiError(500, "Error uploading thumbnail in cloudinary while updating thumbnail")
     }
+
+    //console.log(thumbnailUrl)
 
     const video = await Video.findById(videoId)
 
@@ -310,8 +312,8 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
         {
             $set: {
                 thumbnail: {
-                    public_id: uploadThumbnail.public_id,
-                    url: uploadThumbnail.url,
+                    publicId: thumbnailUrl.public_id,
+                    url: thumbnailUrl.url,
                 },
             },
         }
@@ -334,7 +336,7 @@ const updateVideoThumbnail = asyncHandler(async (req, res) => {
 
 const deleteVideo = asyncHandler(async (req, res) => {
     const { videoId } = req.params
-    //TODO: delete video
+    // TODO: delete video
     // steps to delete video
     // check if videoId is present
     // delete video
@@ -349,6 +351,7 @@ const deleteVideo = asyncHandler(async (req, res) => {
         throw new ApiError(404, "Video not found")
     }
 
+    console.log(video)
     const videoPublicId = video.videoFile.publicId
     const thumbnailPublicId = video.thumbnail.publicId
 
@@ -402,7 +405,7 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(new ApiResponse(200, video, "Video publish status updated"))
+        .json(new ApiResponse(200, updateVideo, "Video publish status updated"))
 })
 
 export {
